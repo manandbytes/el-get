@@ -26,7 +26,9 @@
   (when (and (not el-get-allow-insecure)
              (not (string-match "^https://" url))
              (not (string-match "^[-_\.A-Za-z0-9]+@" url))
-             (not (string-match "^ssh" url)))
+             (not (string-match "^ssh:" url))
+             (not (string-match "^bzr+ssh:" url))
+             (not (string-match "^git+ssh:" url)))
     ;; If we have :checksum, we can rely on `el-get-post-install' for
     ;; security.
     (unless (plist-get (el-get-package-def package) :checksum)

@@ -14,6 +14,7 @@
 (require 'el-get-core)
 (unless (version< emacs-version "24.4")
   (require 'subr-x))
+(require 'url-parse)
 
 ;;
 ;; NOTE: this will probably benefit from some autoloading magic, later.
@@ -43,13 +44,14 @@ following is true and retun nil:
          (checksum-empty (or (not (stringp checksum))
                              (if (fboundp 'string-blank-p)
                                  (string-blank-p checksum)
-                               (string-match-p "\\`[ \t\n\r]*\\'" checksum)))))
+                               (string-match-p "\\`[ \t\n\r]*\\'" checksum))))
+         (protocol (url-type (url-generic-parse-url URL)))
+         (file-local (and (string= "file" protocol)
+                          (string= "" (url-host (url-generic-parse-url URL))))))
     (when (and (not el-get-allow-insecure)
-               (not (string-match "\\`file:///" URL))
-               (not (car (member 0 (mapcar (lambda (secure-proto)
-                                             (let ((proto-rx (concat "\\`" (regexp-quote secure-proto) "://")))
-                                               (string-match-p proto-rx URL))) el-get-secure-protocols))))
-               (not (string-match "\\`[-_\.A-Za-z0-9]+@" URL)))
+               (not (stringp (car (member protocol el-get-secure-protocols))))
+               (not (string-match "\\`[-_\.A-Za-z0-9]+@" URL))
+               (not file-local))
       ;; With not empty :checksum, we can rely on `el-get-post-install' calling
       ;; `el-get-verify-checksum' for security.
       (unless (not checksum-empty)

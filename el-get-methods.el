@@ -35,9 +35,6 @@ following is true and retun nil:
 - URL starts with 'file:///' (without hostname), so it points to the
   local file
 
-- URL starts with username, i.e. 'username@example.com', also known as
-  SCP-like syntax
-
 - PACKAGE definition has a non-empty :checksum"
   (let* ((checksum (plist-get (el-get-package-def PACKAGE) :checksum))
          (checksum-empty (or (not (stringp checksum))
@@ -48,8 +45,7 @@ following is true and retun nil:
                (not (string-match "\\`file:///" URL))
                (not (car (member 0 (mapcar (lambda (secure-proto)
                                              (let ((proto-rx (concat "\\`" (regexp-quote secure-proto) "://")))
-                                               (string-match-p proto-rx URL))) el-get-secure-protocols))))
-               (not (string-match "\\`[-_\.A-Za-z0-9]+@" URL)))
+                                               (string-match-p proto-rx URL))) el-get-secure-protocols)))))
       ;; With not empty :checksum, we can rely on `el-get-post-install' calling
       ;; `el-get-verify-checksum' for security.
       (unless (not checksum-empty)

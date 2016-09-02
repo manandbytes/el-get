@@ -130,11 +130,12 @@ Following variables are bound to temporal values:
                           "ftp://example.com"
                           "file://example.com/home/user"
                           ":pserver:anonymous@example.com"
-                        "
+                          "
 https://example.com"
-                        "
+                          "
 file:///home/user"
-                        "
+                          "John.Doe-123_@example.com"
+                          "
 John.Doe-123_@example.com"))
 
 (ert-deftest el-get-insecure-check-insecure ()
@@ -152,8 +153,7 @@ John.Doe-123_@example.com"))
                         "sftp://example.com/"
                         "file:///home/user"
                         "file:///c|/WINDOWS/clock.avi"
-                        "file:///c:/WINDOWS/clock.avi"
-                        "John.Doe-123_@example.com"))
+                        "file:///c:/WINDOWS/clock.avi"))
 
 (ert-deftest el-get-insecure-check-secure ()
   "Secure URL for a package without :checksum doesn't matter"
@@ -177,3 +177,22 @@ John.Doe-123_@example.com"))
             (el-get-sources '((:name "dummy" :type github :checksum checksum))))
         ;; TODO check for error message?
         (should-error (el-get-insecure-check "dummy" url) :type 'error)))))
+
+(ert-deftest el-get-do-install-git-scp-url ()
+  "Explicitly convert shorter scp-like URL to SSH URL"
+  (let ((el-get-sources '((:name "dummy" :type git :url "user@host:path"))))
+    (cl-letf (((symbol-function 'el-get-insecure-check)
+               (lambda (package url)
+                 (should (string= package "dummy"))
+                 (should (string= url "ssh://user@host/path")))))
+      (should (el-get-do-install "dummy")))))
+
+(ert-deftest el-get-do-install-github-scp-url ()
+  "Explicitly convert shorter scp-like URL to SSH URL"
+  (let ((el-get-github-default-url-type 'git)
+        (el-get-sources '((:name "dummy" :type github :pkgname "user/repo"))))
+    (cl-letf (((symbol-function 'el-get-insecure-check)
+               (lambda (package url)
+                 (should (string= package "dummy"))
+                 (should (string= url "ssh://git@github.com/user/repo.git")))))
+      (should (el-get-do-install "dummy")))))

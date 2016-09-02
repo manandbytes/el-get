@@ -103,7 +103,17 @@ not return 'smart' headers despite supporting shallow clones"
                                     (not submodule-prop)))
          (checkout (or (plist-get source :checkout)
                        (plist-get source :checksum)))
-         (shallow (when (el-get-git-shallow-clone-supported-p url)
+         ;; scp-like = <user>@<host>:<path>
+         (url-scp-p (string-match-p (concat "\\`"
+                                            "\\(\[[:alnum:\]]+@\\)"
+                                            "?"
+                                            "\\(\[[:alnum:\]]+\\)"
+                                            ":"
+                                            "\\(\[[:alnum:\]]+\\)") url))
+         (url-as-url (if url-scp-p
+                         (concat "ssh://" url)
+                       url))
+         (shallow (when (el-get-git-shallow-clone-supported-p url-as-url)
                     (el-get-plist-get-with-default source :shallow
                       el-get-git-shallow-clone)))
          (clone-args (append '("--no-pager" "clone")
@@ -117,10 +127,10 @@ not return 'smart' headers despite supporting shallow clones"
                               (branch (list "-b" branch))
                               ;; Otherwise, just checkout the default branch
                               (t nil))
-                             (list url pname)))
+                             (list url-as-url pname)))
          (ok     (format "Package %s installed." package))
          (ko     (format "Could not install package %s." package)))
-    (el-get-insecure-check package url)
+    (el-get-insecure-check package url-as-url)
 
     (el-get-start-process-list
      package

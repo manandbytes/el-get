@@ -77,7 +77,7 @@
 
 (defun el-get-dpkg-remove-symlink (package)
   "rm -f ~/.emacs.d/el-get/package"
-  (let* ((pdir    (el-get-package-directory package))
+  (let* ((pdir    (directory-file-name (el-get-package-directory package)))
          (pname   (el-get-as-string package)))
     (when (file-symlink-p pdir)
       (let ((command (concat "cd " el-get-dir " && rm -f " pname)))

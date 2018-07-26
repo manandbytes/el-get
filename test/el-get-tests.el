@@ -232,3 +232,27 @@ John.Doe-123_@example.com"))
                (lambda (package url)
                  (error "Leave 'el-get-insecure-check to git"))))
       (should (el-get-do-update "dummy")))))
+
+(ert-deftest el-get-dpkg-remove-symlink-dead-target ()
+  ""
+  (let* ((pkg-name "elpa-dpkg-el")
+         (pkg-directory (el-get-package-directory 'elpa-dpkg-el))
+         (el-get-sources `((:name "dpkg-el" :type apt-get :pkgname ,pkg-name))))
+    (if (file-directory-p (directory-file-name pkg-directory))
+	(delete-directory (directory-file-name pkg-directory)))
+    (should-not (make-symbolic-link "/nowhere/" (directory-file-name pkg-directory)))
+    (should (file-symlink-p (directory-file-name pkg-directory)))
+    (should-not (el-get-dpkg-remove-symlink 'dpkg-el))
+    (should-not (file-symlink-p pkg-directory))))
+
+(ert-deftest el-get-dpkg-remove-symlink-target ())
+
+(ert-deftest el-get-dpkg-remove-not-symlink ()
+  ""
+  (let* ((pkg-name "elpa-dpkg-el")
+         (pkg-directory (el-get-package-directory 'elpa-dpkg-el))
+         (el-get-sources `((:name "dpkg-el" :type apt-get :pkgname ,pkg-name))))
+    (should-not (make-directory pkg-directory))
+    (should (file-directory-p (directory-file-name pkg-directory)))
+    (should-not (el-get-dpkg-remove-symlink 'dpkg-el))
+    (should (file-directory-p pkg-directory))))
